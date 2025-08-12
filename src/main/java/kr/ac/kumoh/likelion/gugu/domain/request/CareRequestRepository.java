@@ -1,4 +1,6 @@
 package kr.ac.kumoh.likelion.gugu.domain.request;
 
-public interface CareRequestRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CareRequestRepository extends JpaRepository<CareRequest, Long> {
 }

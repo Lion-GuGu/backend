@@ -3,6 +3,10 @@ package kr.ac.kumoh.likelion.gugu.domain.request;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import kr.ac.kumoh.likelion.gugu.domain.user.User;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -21,9 +25,14 @@ public class CareRequest {
     @Column(nullable=false, length=10)
     private Category category; // 긴급/돌봄/교육/기타
 
-    @Column(nullable=false) private java.sql.Date dateOnly;
-    @Column(nullable=false) private java.sql.Time startTime;
-    @Column(nullable=false) private java.sql.Time endTime;
+    @Column(name = "date_only")
+    private LocalDate dateOnly;
+
+    @Column(name = "start_time")
+    private LocalTime startTime;
+
+    @Column(name = "end_time")
+    private LocalTime endTime;
 
     @Column(nullable=false, insertable=false, updatable=false)
     private java.sql.Timestamp startAt; // generated column
@@ -46,7 +55,3 @@ public class CareRequest {
     @Column(nullable=false, length=10)
     private RequestStatus status = RequestStatus.OPEN;
 }
-
-public enum Category { 긴급, 돌봄, 교육, 기타 }
-public enum ChildGender { MALE, FEMALE }
-public enum RequestStatus { OPEN, MATCHED, CANCELLED, DONE }

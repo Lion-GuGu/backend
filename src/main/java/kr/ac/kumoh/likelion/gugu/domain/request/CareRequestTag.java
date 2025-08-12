@@ -4,15 +4,7 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-
-@Embeddable
-@Getter
-@Setter
-@EqualsAndHashCode
-public class CareRequestTagId implements java.io.Serializable {
-    private Long requestId;
-    private Long tagId;
-}
+import kr.ac.kumoh.likelion.gugu.domain.tag.Tag;
 
 @Entity
 @Getter @Setter
