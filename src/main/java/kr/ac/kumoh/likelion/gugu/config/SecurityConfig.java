@@ -29,10 +29,16 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        // ↓ 공개 경로 (로그인, 루트, 정적 리소스, 스웨거 선택)
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/", "/test.html", "/favicon.ico",
+                                "/static/**", "/assets/**", "/css/**", "/js/**", "/images/**",
+                                "/swagger-ui/**", "/v3/api-docs/**"   // ← 스웨거 쓴다면 유지, 아니면 지워도 됨
+                        ).permitAll()
+                        // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
-                // Bearer JWT 검증
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
         return http.build();
     }
