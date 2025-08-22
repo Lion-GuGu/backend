@@ -23,8 +23,8 @@ public class PostController {
     public record UpdateReq(String title, String content) {}
 
     @PostMapping
-    public Long create(@AuthenticationPrincipal Jwt jwt, @RequestBody CreateReq req) {
-        long userId = ((Number) jwt.getClaim("userId")).longValue(); // 안전 변환
+    public Long create(@AuthenticationPrincipal User me, @RequestBody CreateReq req) {
+        long userId = me.getId(); // <-- jwt에서 직접 꺼내는 대신, User 객체에서 ID를 가져옵니다.
         return postService.create(userId, req.category(), req.title(), req.content());
     }
 
