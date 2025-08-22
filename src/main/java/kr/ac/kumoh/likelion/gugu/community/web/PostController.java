@@ -23,8 +23,11 @@ public class PostController {
     public record UpdateReq(String title, String content) {}
 
     @PostMapping
-    public Long create(@AuthenticationPrincipal User me, @RequestBody CreateReq req) {
-        long userId = me.getId(); // <-- jwt에서 직접 꺼내는 대신, User 객체에서 ID를 가져옵니다.
+    public Long create(
+            @AuthenticationPrincipal(expression = "claims['userId']") Object uid,  // 🔁 변경
+            @RequestBody CreateReq req
+    ) {
+        long userId = toUserId(uid);
         return postService.create(userId, req.category(), req.title(), req.content());
     }
 
@@ -42,13 +45,21 @@ public class PostController {
 
     @PatchMapping("/{postId}")
     public void update(@PathVariable Long postId,
-                       @AuthenticationPrincipal User me,
+                       @AuthenticationPrincipal(expression = "claims['userId']") Object uid,  // 🔁 변경
                        @RequestBody UpdateReq req) {
-        postService.update(postId, me.getId(), req.title(), req.content());
+        postService.update(postId, toUserId(uid), req.title(), req.content());
     }
 
     @DeleteMapping("/{postId}")
-    public void delete(@PathVariable Long postId, @AuthenticationPrincipal User me) {
-        postService.delete(postId, me.getId());
+    public void delete(@PathVariable Long postId,
+                       @AuthenticationPrincipal(expression = "claims['userId']") Object uid) { // 🔁 변경
+        postService.delete(postId, toUserId(uid));
+    }
+
+    // ---- helpers ----
+    private long toUserId(Object uid) {
+        if (uid == null) throw new IllegalStateException("토큰에 userId 클레임이 없습니다.");
+        if (uid instanceof Number n) return n.longValue();   // Integer/Long 모두 안전 변환
+        return Long.parseLong(uid.toString());
     }
 }
