@@ -29,6 +29,7 @@ public class AuthController {
     // 로그인용 (기존 AuthSignupController에서 가져옴)
     private final AuthenticationManager authManager;
     private final JwtEncoder jwtEncoder;
+    private final UserRepository userRepository;
 
     // --- 요청/응답에 사용할 데이터 형식 정의 ---
     public record LoginRequest(String username, String password) {}
@@ -58,7 +59,7 @@ public class AuthController {
 
         // 3. 인증된 사용자의 ID를 DB에서 조회
         String username = authenticationResponse.getName();
-        User user = UserRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
         Long userId = user.getId();
 
