@@ -1,13 +1,11 @@
 package kr.ac.kumoh.likelion.gugu.security;
 
-import kr.ac.kumoh.likelion.gugu.domain.user.User;
-import kr.ac.kumoh.likelion.gugu.domain.user.UserRepository;
+import kr.ac.kumoh.likelion.gugu.user.domain.User;
+import kr.ac.kumoh.likelion.gugu.user.infra.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
