@@ -3,8 +3,10 @@ package kr.ac.kumoh.likelion.gugu.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,25 +29,35 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http
+                // ✅ CORS 활성화 (위의 CorsConfigurationSource 사용)
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // ↓ 공개 경로 (로그인, 루트, 정적 리소스, 스웨거 선택)
+                        // ✅ 프리플라이트는 모두 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 공개 경로
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/", "/test.html", "/favicon.ico",
                                 "/static/**", "/assets/**", "/css/**", "/js/**", "/images/**",
-                                "/swagger-ui/**", "/v3/api-docs/**"   // ← 스웨거 쓴다면 유지, 아니면 지워도 됨
+                                "/swagger-ui/**", "/v3/api-docs/**"
                         ).permitAll()
+
+                        // (선택) 게시글 목록을 비로그인 공개로 하고 싶다면 아래 줄을 추가
+                        // .requestMatchers(HttpMethod.GET, "/api/community/posts/**").permitAll()
+
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
+
         return http.build();
     }
 
     @Bean public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
-    // 로그인 처리에 사용
     @Bean
     public AuthenticationManager authenticationManager(UserDetailsService uds, PasswordEncoder pe) {
         var provider = new DaoAuthenticationProvider();
@@ -54,7 +66,6 @@ public class SecurityConfig {
         return new ProviderManager(List.of(provider));
     }
 
-    // JWT 검증(Decoder)
     @Bean
     public JwtDecoder jwtDecoder() {
         byte[] secret = Base64.getDecoder().decode(jwtSecretBase64);
@@ -62,7 +73,6 @@ public class SecurityConfig {
         return NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
     }
 
-    // JWT 발급(Encoder)
     @Bean
     public JwtEncoder jwtEncoder() {
         byte[] secret = Base64.getDecoder().decode(jwtSecretBase64);
