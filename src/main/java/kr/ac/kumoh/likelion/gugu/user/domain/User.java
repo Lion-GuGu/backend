@@ -32,6 +32,19 @@ public class User implements UserDetails { // 'UserDetails'를 구현(implements
     @Column(nullable = false, unique = true, length = 120)
     private String email;
 
+    // 아이 정보 추가
+    private Integer childAge;   // 아이 나이
+    private String childGender; // 아이 성별
+    private String childSchool; // 아이 학교
+    private String childResidence; // 아이 거주지
+
+    public void setChildInfo(Integer childAge, String childGender, String childSchool, String childResidence) {
+        this.childAge = childAge;
+        this.childGender = childGender;
+        this.childSchool = childSchool;
+        this.childResidence = childResidence;
+    }
+
     @Column(updatable = false, insertable = false)
     private java.sql.Timestamp createdAt;
 

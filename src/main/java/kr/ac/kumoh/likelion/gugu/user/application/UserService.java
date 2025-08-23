@@ -27,6 +27,8 @@ public class UserService {
         u.setName(req.getName());
         u.setEmail(req.getEmail());
 
+        u.setChildInfo(req.getChildAge(), req.getChildGender(), req.getChildSchool(), req.getChildResidence());
+
         return userRepository.save(u).getId();
     }
 }
