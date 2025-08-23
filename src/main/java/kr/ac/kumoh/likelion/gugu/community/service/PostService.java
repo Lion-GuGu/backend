@@ -1,9 +1,11 @@
 package kr.ac.kumoh.likelion.gugu.community.service;
 
+import kr.ac.kumoh.likelion.gugu.community.event.PostCreatedEvent;
 import kr.ac.kumoh.likelion.gugu.community.model.Post;
 import kr.ac.kumoh.likelion.gugu.community.model.PostCategory;
 import kr.ac.kumoh.likelion.gugu.community.repo.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepo;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public Long create(Long authorId, PostCategory category, String title, String content) {
@@ -23,7 +26,11 @@ public class PostService {
                 .title(title)
                 .content(content)
                 .build();
-        return postRepo.save(p).getId();
+        Post saved = postRepo.save(p);
+
+        eventPublisher.publishEvent(new PostCreatedEvent(authorId, saved.getId()));
+
+        return saved.getId();
     }
 
     @Transactional  // readOnly = true 제거

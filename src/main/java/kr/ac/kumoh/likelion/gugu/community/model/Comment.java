@@ -30,9 +30,16 @@ public class Comment {
     @Column(nullable = false)
     private String content;
 
+    // 기본값을 JPA/Hibernate/Lombok 모두에서 안전하게 보장
+    @Builder.Default
     @Column(nullable = false)
     private boolean deleted = false;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean accepted = false;   // 질문글의 댓글 채택 여부 추가
+
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 }

@@ -6,8 +6,8 @@ import kr.ac.kumoh.likelion.gugu.point.domain.ReasonCode;
 public enum PointRule {
     // ====== EARN 규칙 ======
     ANSWER_ACCEPTED(PointTransaction.TxType.EARN, 50, ReasonCode.ANSWER_ACCEPTED),
-    POST_WRITE(PointTransaction.TxType.EARN, 5, ReasonCode.POST_WRITE),
-    COMMENT_WRITE(PointTransaction.TxType.EARN, 2, ReasonCode.COMMENT_WRITE),
+    POST_WRITE(PointTransaction.TxType.EARN, 10, ReasonCode.POST_WRITE),
+    COMMENT_WRITE(PointTransaction.TxType.EARN, 5, ReasonCode.COMMENT_WRITE),
 
     // ====== SPEND 규칙 ======
     SHOP_PURCHASE(PointTransaction.TxType.SPEND, 0, ReasonCode.SHOP_PURCHASE); // 금액은 런타임 입력
