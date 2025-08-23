@@ -49,4 +49,23 @@ public class CommunityPointListener {
                 event.getPostId()
         );
     }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onAnswerAccepted(AnswerAcceptedEvent e) {
+        try {
+            // 답변자에게 채택 포인트 지급
+            long balance = pointService.earnByRule(
+                    e.getAnswererId(),
+                    PointRule.ANSWER_ACCEPTED,
+                    "COMMENT",          // refType: COMMENT 권장
+                    e.getCommentId()    // refId: 채택된 댓글 ID
+            );
+            log.info("[POINT] ANSWER_ACCEPTED granted. answererId={}, commentId={}, balance={}",
+                    e.getAnswererId(), e.getCommentId(), balance);
+        } catch (Exception ex) {
+            log.error("[POINT][FAIL] ANSWER_ACCEPTED answererId={}, commentId={}",
+                    e.getAnswererId(), e.getCommentId(), ex);
+        }
+    }
 }

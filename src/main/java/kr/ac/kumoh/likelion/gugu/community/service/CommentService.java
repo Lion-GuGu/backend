@@ -123,6 +123,10 @@ public class CommentService {
             throw new IllegalStateException("삭제된 댓글은 채택할 수 없습니다.");
         }
 
+        if (comment.getAuthorId().equals(post.getAuthorId())) {
+            throw new IllegalStateException("본인 글의 본인 댓글은 채택할 수 없습니다.");
+        }
+
         // 기존 채택 댓글이 있으면 해제
         Optional<Comment> prevAccepted = commentRepo.findByPostIdAndAcceptedTrue(postId);
         if (prevAccepted.isPresent()) {

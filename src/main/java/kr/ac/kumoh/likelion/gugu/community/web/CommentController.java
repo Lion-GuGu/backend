@@ -6,12 +6,13 @@ import kr.ac.kumoh.likelion.gugu.community.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
-@RequestMapping("/api/community/posts/{postId}/comments")
+@RequestMapping("/api/community")
 @RequiredArgsConstructor
 public class CommentController {
 
@@ -19,7 +20,7 @@ public class CommentController {
 
     public record CreateReq(String content, Long parentId) {}
 
-    @PostMapping
+    @PostMapping("/posts/{postId}/comments")
     public Long create(@PathVariable Long postId,
                        @AuthenticationPrincipal Jwt jwt,
                        @RequestBody CreateReq req) {
@@ -34,10 +35,21 @@ public class CommentController {
         return commentService.listByPost(postId, PageRequest.of(page, size));
     }
 
-    @DeleteMapping("/{commentId}")
-    public void delete(@PathVariable Long postId,
-                       @PathVariable Long commentId,
-                       @AuthenticationPrincipal User me) {
-        commentService.delete(commentId, me.getId());
+    @DeleteMapping("/posts/{postId}/comments/{commentId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal(expression = "claims['userId']") Number uid // ✅
+    ) {
+        commentService.delete(commentId, uid.longValue());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/posts/{postId}/comments/{commentId}/accept")
+    public ResponseEntity<Void> acceptAnswer(@AuthenticationPrincipal(expression = "claims['userId']") Number uid,
+                                             @PathVariable Long postId,
+                                             @PathVariable Long commentId) {
+        commentService.acceptAnswer(postId, commentId, uid.longValue());
+        return ResponseEntity.noContent().build();
     }
 }
