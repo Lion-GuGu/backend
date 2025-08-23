@@ -30,6 +30,10 @@ public class PostService {
     public Post get(Long postId) {
         Post p = postRepo.findById(postId).orElseThrow();
         if (p.isDeleted()) throw new IllegalStateException("삭제된 게시글입니다.");
+
+        p.setViewCount(p.getViewCount() + 1); // 조회수 증가
+        postRepo.save(p);  // 저장
+
         return p;
     }
 

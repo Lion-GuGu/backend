@@ -36,6 +36,9 @@ public class Post {
     @Column(nullable = false)
     private boolean deleted = false;
 
+    @Column(nullable = false)
+    private int viewCount = 0;
+
     @CreationTimestamp
     private Instant createdAt;
 

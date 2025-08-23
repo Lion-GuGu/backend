@@ -33,7 +33,7 @@ public class PostController {
 
     @GetMapping("/{postId}")
     public Post get(@PathVariable Long postId) {
-        return postService.get(postId);
+        return postService.get(postId);  // 조회수 증가 포함
     }
 
     @GetMapping
