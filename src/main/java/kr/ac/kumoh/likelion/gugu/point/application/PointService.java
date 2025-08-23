@@ -60,6 +60,6 @@ public class PointService {
 
     @Transactional(readOnly = true)
     public Page<PointTransaction> history(Long userId, Pageable pageable) {
-        return txRepo.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        return txRepo.findByUserIdOrAllTransactions(userId, pageable);
     }
 }
