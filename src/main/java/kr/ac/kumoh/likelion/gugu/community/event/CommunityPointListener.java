@@ -5,8 +5,11 @@ import kr.ac.kumoh.likelion.gugu.point.application.PointService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Slf4j
 @Component
@@ -15,6 +18,7 @@ public class CommunityPointListener {
 
     private final PointService pointService;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCommentCreated(CommentCreatedEvent e) {
         try {
@@ -35,6 +39,7 @@ public class CommunityPointListener {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPostCreated(PostCreatedEvent event) {
         pointService.earnByRule(

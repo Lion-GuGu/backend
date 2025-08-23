@@ -5,12 +5,14 @@ import kr.ac.kumoh.likelion.gugu.community.model.Post;
 import kr.ac.kumoh.likelion.gugu.community.model.PostCategory;
 import kr.ac.kumoh.likelion.gugu.community.repo.PostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -28,7 +30,9 @@ public class PostService {
                 .build();
         Post saved = postRepo.save(p);
 
+        log.info("[POST] created id={}, authorId={}", saved.getId(), authorId);  // 👈 발행 전 로그
         eventPublisher.publishEvent(new PostCreatedEvent(authorId, saved.getId()));
+        log.info("[EVENT] PostCreatedEvent published postId={}, authorId={}", saved.getId(), authorId); // 👈 발행 직후 로그
 
         return saved.getId();
     }
