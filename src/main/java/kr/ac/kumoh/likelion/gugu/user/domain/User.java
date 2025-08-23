@@ -14,7 +14,7 @@ import java.util.List;
 @Table(name = "users")
 @Getter
 @Setter
-public class User implements UserDetails { // 'UserDetails'를 구현(implements)합니다.
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,10 +32,17 @@ public class User implements UserDetails { // 'UserDetails'를 구현(implements
     @Column(nullable = false, unique = true, length = 120)
     private String email;
 
-    // 아이 정보 추가
-    private Integer childAge;   // 아이 나이
-    private String childGender; // 아이 성별
-    private String childSchool; // 아이 학교
+    // 아이 정보 매핑 (snake_case 컬럼명 지정)
+    @Column(name = "child_age")
+    private Integer childAge;      // 아이 나이
+
+    @Column(name = "child_gender")
+    private String childGender;    // 아이 성별
+
+    @Column(name = "child_school")
+    private String childSchool;    // 아이 학교
+
+    @Column(name = "child_residence")
     private String childResidence; // 아이 거주지
 
     public void setChildInfo(Integer childAge, String childGender, String childSchool, String childResidence) {
@@ -45,40 +52,19 @@ public class User implements UserDetails { // 'UserDetails'를 구현(implements
         this.childResidence = childResidence;
     }
 
-    @Column(updatable = false, insertable = false)
+    @Column(name = "created_at", updatable = false, insertable = false)
     private java.sql.Timestamp createdAt;
 
-    @Column(insertable = false)
+    @Column(name = "updated_at", insertable = false)
     private java.sql.Timestamp updatedAt;
 
-
-    // ---------- UserDetails 구현을 위한 메서드들 ----------
-
+    // ---------- UserDetails 구현 ----------
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 모든 사용자에게 'ROLE_USER' 권한을 부여합니다.
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
-
-    // getPassword()와 getUsername()은 Lombok의 @Getter가 자동으로 생성해 줍니다.
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true; // true: 계정이 만료되지 않았음
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true; // true: 계정이 잠기지 않았음
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true; // true: 비밀번호가 만료되지 않았음
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true; // true: 계정이 활성화되었음
-    }
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
 }
