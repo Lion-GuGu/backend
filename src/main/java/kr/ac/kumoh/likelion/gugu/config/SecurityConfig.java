@@ -30,14 +30,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // ✅ CORS 활성화 (위의 CorsConfigurationSource 사용)
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ 프리플라이트는 모두 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // 공개 경로
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/", "/test.html", "/favicon.ico",
@@ -45,12 +41,18 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/v3/api-docs/**"
                         ).permitAll()
 
-                        // (선택) 게시글 목록을 비로그인 공개로 하고 싶다면 아래 줄을 추가
-                        // .requestMatchers(HttpMethod.GET, "/api/community/posts/**").permitAll()
+                        // 내 잔액/내 거래내역: 로그인 필요
+                        .requestMatchers(HttpMethod.GET, "/api/points/me", "/api/points/me/**").authenticated()
 
-                        // 나머지는 인증 필요
+                        // ✅ 전체/특정 잔액: 로그인 필요 (역할 검사 없음)
+                        .requestMatchers(HttpMethod.GET, "/api/points", "/api/points/*").authenticated()
+
+                        // ✅ (원하면) 거래내역 전체/특정도 로그인만 필요하게
+                        .requestMatchers(HttpMethod.GET, "/api/point-transactions", "/api/point-transactions/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
+
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
 
         return http.build();
