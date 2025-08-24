@@ -55,6 +55,17 @@ public class CareRequest {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable=false, length=10)
+    @Column(nullable=false, length=20)
     private RequestStatus status = RequestStatus.OPEN;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "matched_provider_id")
+    private User matchedProvider;
+
+    private java.time.LocalDateTime matchedAt;
+
+    @PrePersist
+    void prePersist() {
+        if (status == null) status = RequestStatus.OPEN;
+    }
 }
