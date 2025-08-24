@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import kr.ac.kumoh.likelion.gugu.care.application.CareRequestService;
 import kr.ac.kumoh.likelion.gugu.care.web.dto.request.CreateCareRequestDto;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/requests")
 @RequiredArgsConstructor
@@ -17,7 +19,9 @@ public class CareRequestController {
 
     private final CareRequestService service;
 
+    // 둘 다 필요하므로 두 레코드 모두 유지
     public record IdResponse(Long id) {}
+    public record MatchRequest(Long providerId) {}
 
     @PostMapping
     public ResponseEntity<IdResponse> create(
@@ -38,5 +42,16 @@ public class CareRequestController {
         if (claim instanceof Number num) return num.longValue();
         if (claim instanceof String s)   return Long.parseLong(s);
         throw new IllegalArgumentException("JWT에 userId 클레임이 없습니다.");
+    }
+
+    @PostMapping("/{requestId}/match")
+    public ResponseEntity<Map<String, Long>> match(
+            @PathVariable Long requestId,
+            @RequestBody MatchRequest req,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        Long actorId = extractUserId(jwt);
+        Long matchId = service.matchProvider(actorId, requestId, req.providerId());
+        return ResponseEntity.ok(Map.of("matchId", matchId));
     }
 }

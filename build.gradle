@@ -23,6 +23,13 @@ repositories {
 	mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        // AWS SDK의 버전을 관리해주는 BOM(Bill of Materials) 설정
+        mavenBom "software.amazon.awssdk:bom:2.25.56"
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -30,6 +37,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server' // JWT 검증
 	implementation 'org.springframework.security:spring-security-oauth2-jose'
+    implementation 'software.amazon.awssdk:personalizeruntime'
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
