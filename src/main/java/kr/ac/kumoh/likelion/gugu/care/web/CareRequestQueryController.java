@@ -33,6 +33,10 @@ public class CareRequestQueryController {
             m.put("start_time", String.valueOf(cr.getStartTime()));
             m.put("end_time", String.valueOf(cr.getEndTime()));
             m.put("status", cr.getStatus().name());
+            m.put("location", cr.getLocation());
+            m.put("child_gender", cr.getChildGender().name());
+            m.put("child_age", cr.getChildAge());
+            m.put("description", cr.getDescription());
             return m;
         }).toList(); // JDK 16 미만이면 .collect(Collectors.toList())
     }
@@ -49,6 +53,10 @@ public class CareRequestQueryController {
         m.put("start_time", String.valueOf(cr.getStartTime()));
         m.put("end_time", String.valueOf(cr.getEndTime()));
         m.put("status", cr.getStatus().name());
+        m.put("location", cr.getLocation());
+        m.put("child_gender", cr.getChildGender().name());
+        m.put("child_age", cr.getChildAge());
+        m.put("description", cr.getDescription());
         return m;
     }
 
