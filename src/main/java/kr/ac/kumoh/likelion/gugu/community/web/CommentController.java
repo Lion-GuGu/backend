@@ -6,10 +6,12 @@ import kr.ac.kumoh.likelion.gugu.community.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/community")
@@ -28,7 +30,7 @@ public class CommentController {
         return commentService.create(postId, userId, req.content(), req.parentId());
     }
 
-    @GetMapping
+    @GetMapping("/posts/{postId}/comments")
     public Page<Comment> list(@PathVariable Long postId,
                               @RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "20") int size) {
@@ -39,10 +41,18 @@ public class CommentController {
     public ResponseEntity<Void> delete(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @AuthenticationPrincipal(expression = "claims['userId']") Number uid // ✅
+            @AuthenticationPrincipal(expression = "claims['userId']") Object uid // Object로 받기
     ) {
-        commentService.delete(commentId, uid.longValue());
-        return ResponseEntity.noContent().build();
+        if (uid == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."); // 401
+        }
+        long actorId;
+        if (uid instanceof Number n) actorId = n.longValue();
+        else if (uid instanceof String s) actorId = Long.parseLong(s);
+        else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 사용자 정보");
+
+        commentService.delete(commentId, actorId);
+        return ResponseEntity.noContent().build(); // 204
     }
 
     @PostMapping("/posts/{postId}/comments/{commentId}/accept")
