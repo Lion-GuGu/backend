@@ -5,6 +5,7 @@ import kr.ac.kumoh.likelion.gugu.care.domain.CareRequest;
 import kr.ac.kumoh.likelion.gugu.care.domain.type.ApplicationStatus;
 import kr.ac.kumoh.likelion.gugu.care.domain.type.RequestStatus;
 import kr.ac.kumoh.likelion.gugu.care.infra.CareApplicationRepository;
+import kr.ac.kumoh.likelion.gugu.care.infra.CareMatchRepository;
 import kr.ac.kumoh.likelion.gugu.care.infra.CareRequestRepository;
 import kr.ac.kumoh.likelion.gugu.user.domain.User;
 import kr.ac.kumoh.likelion.gugu.user.infra.UserRepository;
@@ -25,13 +26,12 @@ public class CareApplicationService {
 
     private final CareRequestRepository requestRepo;
     private final CareApplicationRepository appRepo;
+    private final CareMatchRepository careMatchRepo;
     private final UserRepository userRepo;
 
     /**
      * 신청하기 (다른 사용자가 OPEN 상태의 요청에 신청)
      */
-    // CareApplicationService.java
-
     @Transactional
     public Long apply(Long applicantId, Long requestId) {
         CareRequest req = requestRepo.findById(requestId)
@@ -51,8 +51,20 @@ public class CareApplicationService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 신청한 요청입니다.");
         }
 
+        // ✅ 1) 같은 날, 겹치는 시간대에 내가 이미 신청(PENDING)했으면 불가
+        if (appRepo.existsOverlappingPendingApplication(
+                applicantId, req.getDateOnly(), req.getStartTime(), req.getEndTime())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "겹치는 시간의 신청이 이미 있습니다.");
+        }
+
+        // ✅ 2) (권장) 같은 날, 겹치는 시간대에 내가 이미 매칭 확정된 일정이 있으면 불가
+        if (careMatchRepo.existsOverlappingMatch(
+                applicantId, req.getDateOnly(), req.getStartTime(), req.getEndTime())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "겹치는 시간에 확정된 일정이 이미 있습니다.");
+        }
+
         try {
-            CareApplication app = new CareApplication(req, applicant);
+            CareApplication app = new CareApplication(req, applicant); // 메시지 없는 생성자
             appRepo.save(app);
             return app.getId();
         } catch (DataIntegrityViolationException e) {
