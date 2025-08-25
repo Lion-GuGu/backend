@@ -87,15 +87,17 @@ public class CareRequestService {
 
         // 3) 상태 검사 + 멱등 처리
         if (req.getStatus() != RequestStatus.OPEN) {
-            if (req.getStatus() == RequestStatus.MATCHED
-                    && req.getMatchedProvider() != null
-                    && req.getMatchedProvider().getId().equals(providerId)) {
-                // 이미 같은 사람으로 매칭됨 → 멱등 OK
-                return appRepo.findByRequestIdAndApplicantId(requestId, providerId)
-                        .map(CareApplication::getId)
-                        .orElse(0L);
+            if (req.getStatus() == RequestStatus.MATCHED && req.getMatchedProvider() != null) {
+                // 같은 제공자인지 확인
+                if (req.getMatchedProvider().getId().equals(providerId)) {
+                    // 이미 매칭된 CareMatch가 있으면 그 id 반환(멱등)
+                    return careMatchRepo.findByRequestId(requestId)
+                            .map(CareMatch::getId)
+                            .orElse(0L); // 혹시 없으면 0 (실제로는 UNIQUE 제약이라 존재해야 정상)
+                }
+                throw new ResponseStatusException(HttpStatus.GONE, "이미 다른 제공자와 매칭 완료되었습니다.");
             }
-            throw new ResponseStatusException(HttpStatus.GONE, "이미 매칭 완료 또는 종료된 요청입니다.");
+            throw new ResponseStatusException(HttpStatus.GONE, "이미 종료된 요청입니다.");
         }
 
         // 4) 신청자 여부 확인
@@ -116,11 +118,28 @@ public class CareRequestService {
             }
         }
 
-        // 6) 요청 잠금
+        // 6) 제공자 스케줄 오버랩 방지
+        boolean overlaps = careMatchRepo.existsOverlappingMatch(
+                providerId, req.getDateOnly(), req.getStartTime(), req.getEndTime());
+        if (overlaps) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "해당 제공자는 같은 시간대에 이미 매칭이 있습니다.");
+        }
+
+        // 7) 요청 상태 업데이트
         req.setStatus(RequestStatus.MATCHED);
         req.setMatchedProvider(target.getApplicant());
         req.setMatchedAt(LocalDateTime.now());
 
-        return target.getId();
+        // 8) CareMatch 생성 (멱등/중복 방지)
+        if (careMatchRepo.existsByRequestId(req.getId())) {
+            // 동시성으로 이미 만들어진 경우 기존 matchId 반환
+            return careMatchRepo.findByRequestId(req.getId())
+                    .map(CareMatch::getId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "매칭 상태 불일치"));
+        }
+
+        CareMatch match = new CareMatch(req, target.getApplicant());
+        match = careMatchRepo.save(match);
+        return match.getId(); // ← 컨트롤러의 "matchId"와 일관
     }
 }

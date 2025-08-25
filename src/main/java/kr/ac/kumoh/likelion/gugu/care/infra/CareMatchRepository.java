@@ -58,4 +58,7 @@ public interface CareMatchRepository extends JpaRepository<CareMatch, Long> {
             @Param("startTime") LocalTime startTime,
             @Param("endTime") LocalTime endTime
     );
+
+    boolean existsByRequestId(Long requestId);        // ← 추가
+    java.util.Optional<CareMatch> findByRequestId(Long requestId); // ← (멱등용) 선택
 }
